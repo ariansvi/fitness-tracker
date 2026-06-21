@@ -76,30 +76,28 @@ export function LogWorkout({
       <section>
         <SectionTitle>Log a workout</SectionTitle>
         <Card className="space-y-4">
-          <div className="flex gap-3">
-            <div className="min-w-0 flex-1">
-              <label className={labelCls} htmlFor="date">Date</label>
-              <input
-                id="date"
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className={inputCls}
-              />
-            </div>
-            <div className="min-w-0 flex-1">
-              <label className={labelCls} htmlFor="type">Type</label>
-              <select
-                id="type"
-                value={type}
-                onChange={(e) => setType(e.target.value as WorkoutType)}
-                className={inputCls}
-              >
-                {WORKOUT_TYPES.map((t) => (
-                  <option key={t} value={t}>{t}</option>
-                ))}
-              </select>
-            </div>
+          <div>
+            <label className={labelCls} htmlFor="date">Date</label>
+            <input
+              id="date"
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className={inputCls}
+            />
+          </div>
+          <div>
+            <label className={labelCls} htmlFor="type">Type</label>
+            <select
+              id="type"
+              value={type}
+              onChange={(e) => setType(e.target.value as WorkoutType)}
+              className={inputCls}
+            >
+              {WORKOUT_TYPES.map((t) => (
+                <option key={t} value={t}>{t}</option>
+              ))}
+            </select>
           </div>
 
           {type === 'Strength' && (
