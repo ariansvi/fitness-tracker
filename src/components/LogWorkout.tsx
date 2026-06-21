@@ -77,7 +77,7 @@ export function LogWorkout({
         <SectionTitle>Log a workout</SectionTitle>
         <Card className="space-y-4">
           <div className="flex gap-3">
-            <div className="flex-1">
+            <div className="min-w-0 flex-1">
               <label className={labelCls} htmlFor="date">Date</label>
               <input
                 id="date"
@@ -87,7 +87,7 @@ export function LogWorkout({
                 className={inputCls}
               />
             </div>
-            <div className="flex-1">
+            <div className="min-w-0 flex-1">
               <label className={labelCls} htmlFor="type">Type</label>
               <select
                 id="type"
