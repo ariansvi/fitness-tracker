@@ -1,14 +1,46 @@
-// Tiny offline service worker: stale-while-revalidate for everything.
-// Caches each GET response as it's fetched, so after the first online load
-// the app keeps working offline. No build-time asset list to maintain.
-const CACHE = 'showup-v1';
+// Offline service worker.
+// - Navigations: network-first, so a fresh deploy shows up immediately when
+//   online; falls back to the cached shell when offline.
+// - Other GETs (hashed JS/CSS, icons): stale-while-revalidate.
+// Bump CACHE on changes that must invalidate everything.
+const CACHE = 'showup-v2';
 
 self.addEventListener('install', () => self.skipWaiting());
-self.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()));
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    (async () => {
+      const keys = await caches.keys();
+      await Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)));
+      await self.clients.claim();
+    })(),
+  );
+});
 
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   if (request.method !== 'GET') return;
+
+  const isNavigation =
+    request.mode === 'navigate' ||
+    (request.headers.get('accept') || '').includes('text/html');
+
+  if (isNavigation) {
+    event.respondWith(
+      (async () => {
+        const cache = await caches.open(CACHE);
+        try {
+          const fresh = await fetch(request);
+          cache.put(request, fresh.clone());
+          return fresh;
+        } catch {
+          const shell = await cache.match(new URL('./', self.registration.scope).href);
+          return (await cache.match(request)) || shell || Response.error();
+        }
+      })(),
+    );
+    return;
+  }
 
   event.respondWith(
     caches.open(CACHE).then(async (cache) => {
@@ -18,14 +50,7 @@ self.addEventListener('fetch', (event) => {
           if (res && res.status === 200 && res.type === 'basic') cache.put(request, res.clone());
           return res;
         })
-        .catch(async () => {
-          // Offline: for page navigations fall back to the cached app shell.
-          if (request.mode === 'navigate') {
-            const shell = await cache.match(new URL('./', self.registration.scope).href);
-            if (shell) return shell;
-          }
-          return cached;
-        });
+        .catch(() => cached);
       return cached || network;
     }),
   );
